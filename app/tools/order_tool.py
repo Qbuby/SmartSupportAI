@@ -49,6 +49,7 @@ class OrderTool:
         """生成模拟订单数据"""
         # 创建一些示例订单用于测试
         sample_orders = [
+            # 原有5条订单
             {
                 "order_id": "12345",
                 "status": "shipped",
@@ -92,6 +93,97 @@ class OrderTool:
                 "amount": 8000.00,
                 "create_time": "2025-02-28T10:00:00",
                 "update_time": "2025-03-01T09:30:00",
+                "tracking_number": None
+            },
+            # 新增短编号订单（方便测试）
+            {
+                "order_id": "11",
+                "status": "confirmed",
+                "product_name": "企业版 SaaS 服务（月度订阅）",
+                "amount": 2999.00,
+                "create_time": "2025-03-11T09:00:00",
+                "update_time": "2025-03-11T10:00:00",
+                "tracking_number": None
+            },
+            {
+                "order_id": "22",
+                "status": "processing",
+                "product_name": "API 调用包（10万次）",
+                "amount": 800.00,
+                "create_time": "2025-03-10T14:30:00",
+                "update_time": "2025-03-10T14:30:00",
+                "tracking_number": None
+            },
+            {
+                "order_id": "666",
+                "status": "shipped",
+                "product_name": "云存储扩容包（5TB）",
+                "amount": 5000.00,
+                "create_time": "2025-03-05T11:00:00",
+                "update_time": "2025-03-07T16:00:00",
+                "tracking_number": "SF6666666666"
+            },
+            {
+                "order_id": "8888",
+                "status": "delivered",
+                "product_name": "定制化开发服务",
+                "amount": 45000.00,
+                "create_time": "2025-02-20T10:00:00",
+                "update_time": "2025-03-01T15:00:00",
+                "tracking_number": None
+            },
+            {
+                "order_id": "10086",
+                "status": "refunded",
+                "product_name": "培训课程（企业内训）",
+                "amount": 15000.00,
+                "create_time": "2025-02-10T09:00:00",
+                "update_time": "2025-02-12T14:00:00",
+                "tracking_number": None
+            },
+            {
+                "order_id": "ORD-001",
+                "status": "pending",
+                "product_name": "专属客户经理服务",
+                "amount": 50000.00,
+                "create_time": "2025-03-11T08:30:00",
+                "update_time": "2025-03-11T08:30:00",
+                "tracking_number": None
+            },
+            {
+                "order_id": "ORD-002",
+                "status": "confirmed",
+                "product_name": "企业版 SaaS 服务（季度订阅）",
+                "amount": 8999.00,
+                "create_time": "2025-03-09T16:00:00",
+                "update_time": "2025-03-10T09:00:00",
+                "tracking_number": None
+            },
+            {
+                "order_id": "ORD-003",
+                "status": "shipped",
+                "product_name": "技术支持服务（标准版）",
+                "amount": 8000.00,
+                "create_time": "2025-03-06T10:00:00",
+                "update_time": "2025-03-08T14:00:00",
+                "tracking_number": None
+            },
+            {
+                "order_id": "2025-001",
+                "status": "processing",
+                "product_name": "数据分析模块授权（增强版）",
+                "amount": 15000.00,
+                "create_time": "2025-03-11T11:00:00",
+                "update_time": "2025-03-11T11:00:00",
+                "tracking_number": None
+            },
+            {
+                "order_id": "2025-002",
+                "status": "confirmed",
+                "product_name": "API 调用包（50万次）",
+                "amount": 3500.00,
+                "create_time": "2025-03-08T09:30:00",
+                "update_time": "2025-03-09T10:00:00",
                 "tracking_number": None
             }
         ]
@@ -206,8 +298,8 @@ class OrderTool:
 
     def _is_valid_order_format(self, order_id: str) -> bool:
         """检查订单号格式是否有效"""
-        # 简单校验：至少包含一个数字，长度在 4-20 之间
-        if not order_id or len(order_id) < 4 or len(order_id) > 20:
+        # 简单校验：至少包含一个数字，长度在 2-20 之间
+        if not order_id or len(order_id) < 2 or len(order_id) > 20:
             return False
 
         has_digit = any(c.isdigit() for c in order_id)

@@ -65,6 +65,7 @@ class TicketTool:
     def _generate_mock_data(self):
         """生成模拟工单数据"""
         sample_tickets = [
+            # 原有5条工单
             {
                 "ticket_id": "67890",
                 "status": "in_progress",
@@ -151,6 +152,159 @@ class TicketTool:
                         "time": "2025-03-02T16:00:00",
                         "author": "系统",
                         "content": "工单已关闭（超过24小时无回复）"
+                    }
+                ]
+            },
+            # 新增短编号工单（方便测试）
+            {
+                "ticket_id": "11",
+                "status": "open",
+                "subject": "账户余额显示异常",
+                "description": "账户余额显示为负数，请核实。",
+                "priority": "high",
+                "assignee": "财务专员-小陈",
+                "create_time": "2025-03-11T09:00:00",
+                "update_time": "2025-03-11T09:00:00",
+                "comments": []
+            },
+            {
+                "ticket_id": "22",
+                "status": "in_progress",
+                "subject": "发票申请",
+                "description": "需要开具上月服务费的增值税专用发票。",
+                "priority": "normal",
+                "assignee": "财务专员-小陈",
+                "create_time": "2025-03-10T14:30:00",
+                "update_time": "2025-03-11T10:00:00",
+                "comments": [
+                    {
+                        "time": "2025-03-11T10:00:00",
+                        "author": "财务专员-小陈",
+                        "content": "已收到申请，正在处理中。"
+                    }
+                ]
+            },
+            {
+                "ticket_id": "666",
+                "status": "resolved",
+                "subject": "API 限流咨询",
+                "description": "想了解 API 调用的频率限制是多少。",
+                "priority": "low",
+                "assignee": "技术支持-小刘",
+                "create_time": "2025-03-08T11:00:00",
+                "update_time": "2025-03-08T16:00:00",
+                "comments": [
+                    {
+                        "time": "2025-03-08T16:00:00",
+                        "author": "技术支持-小刘",
+                        "content": "已发送 API 文档，请参考限流章节。"
+                    }
+                ]
+            },
+            {
+                "ticket_id": "8888",
+                "status": "waiting_customer",
+                "subject": "合同续签",
+                "description": "服务即将到期，希望了解续签优惠政策。",
+                "priority": "normal",
+                "assignee": "客户经理-老周",
+                "create_time": "2025-03-09T10:00:00",
+                "update_time": "2025-03-10T15:00:00",
+                "comments": [
+                    {
+                        "time": "2025-03-10T15:00:00",
+                        "author": "客户经理-老周",
+                        "content": "已发送续签方案，请查收邮件。"
+                    }
+                ]
+            },
+            {
+                "ticket_id": "10086",
+                "status": "closed",
+                "subject": "数据迁移完成确认",
+                "description": "历史数据迁移后需要确认完整性。",
+                "priority": "urgent",
+                "assignee": "数据工程师-小吴",
+                "create_time": "2025-03-05T09:00:00",
+                "update_time": "2025-03-06T18:00:00",
+                "comments": [
+                    {
+                        "time": "2025-03-06T18:00:00",
+                        "author": "数据工程师-小吴",
+                        "content": "数据验证通过，迁移完成。"
+                    }
+                ]
+            },
+            {
+                "ticket_id": "TK-001",
+                "status": "open",
+                "subject": "系统使用培训申请",
+                "description": "新员工入职，需要安排系统使用培训。",
+                "priority": "normal",
+                "assignee": None,
+                "create_time": "2025-03-11T08:00:00",
+                "update_time": "2025-03-11T08:00:00",
+                "comments": []
+            },
+            {
+                "ticket_id": "TK-002",
+                "status": "in_progress",
+                "subject": "自定义报表需求",
+                "description": "希望增加按区域统计的自定义报表功能。",
+                "priority": "high",
+                "assignee": "产品经理-小郑",
+                "create_time": "2025-03-07T16:00:00",
+                "update_time": "2025-03-09T11:00:00",
+                "comments": [
+                    {
+                        "time": "2025-03-09T11:00:00",
+                        "author": "产品经理-小郑",
+                        "content": "需求已评估，排期在下个迭代。"
+                    }
+                ]
+            },
+            {
+                "ticket_id": "TK-003",
+                "status": "resolved",
+                "subject": "密码重置",
+                "description": "忘记管理员密码，需要重置。",
+                "priority": "urgent",
+                "assignee": "客服专员-李四",
+                "create_time": "2025-03-10T09:30:00",
+                "update_time": "2025-03-10T10:00:00",
+                "comments": [
+                    {
+                        "time": "2025-03-10T10:00:00",
+                        "author": "客服专员-李四",
+                        "content": "已重置密码并短信通知。"
+                    }
+                ]
+            },
+            {
+                "ticket_id": "2025-001",
+                "status": "open",
+                "subject": "集成 SDK 技术支持",
+                "description": "移动端 SDK 集成过程中遇到问题，需要技术指导。",
+                "priority": "high",
+                "assignee": "技术工程师-张三",
+                "create_time": "2025-03-11T10:30:00",
+                "update_time": "2025-03-11T10:30:00",
+                "comments": []
+            },
+            {
+                "ticket_id": "2025-002",
+                "status": "waiting_customer",
+                "subject": "服务升级咨询",
+                "description": "想了解从标准版升级到企业版的流程和费用。",
+                "priority": "normal",
+                "assignee": "客户经理-老周",
+                "create_time": "2025-03-09T14:00:00",
+                "update_time": "2025-03-10T09:00:00",
+                "comments": [
+                    {
+                        "time": "2025-03-10T09:00:00",
+                        "author": "客户经理-老周",
+                        "content": "已发送升级方案和报价单。"
                     }
                 ]
             }
@@ -337,7 +491,7 @@ class TicketTool:
 
     def _is_valid_ticket_format(self, ticket_id: str) -> bool:
         """检查工单号格式是否有效"""
-        if not ticket_id or len(ticket_id) < 4 or len(ticket_id) > 20:
+        if not ticket_id or len(ticket_id) < 2 or len(ticket_id) > 20:
             return False
         return True
 

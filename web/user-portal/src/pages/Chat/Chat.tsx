@@ -36,14 +36,29 @@ const Chat: React.FC = () => {
         timestamp: s.last_active || s.created_at,
       }));
       setSessions(formattedSessions);
+      return formattedSessions;
     } catch (error) {
       console.error('加载会话失败:', error);
+      return [];
     }
   }, []);
 
   // 初始加载
   useEffect(() => {
-    loadSessions();
+    loadSessions().then((sessions) => {
+      // 尝试从localStorage恢复当前会话
+      const savedSessionId = localStorage.getItem('smartsupport_current_session_id');
+      if (savedSessionId) {
+        // 检查该会话是否仍然存在
+        const sessionExists = sessions.some((s) => s.id === savedSessionId);
+        if (sessionExists) {
+          handleSelectSession(savedSessionId);
+        } else {
+          // 会话已被删除，清除localStorage
+          localStorage.removeItem('smartsupport_current_session_id');
+        }
+      }
+    });
   }, [loadSessions]);
 
   // 创建新会话
@@ -56,12 +71,14 @@ const Chat: React.FC = () => {
     };
     setSessions((prev) => [newSession, ...prev]);
     setCurrentSessionId(newSessionId);
+    localStorage.setItem('smartsupport_current_session_id', newSessionId);
     setMessages([]);
   };
 
   // 选择会话
   const handleSelectSession = async (id: string) => {
     setCurrentSessionId(id);
+    localStorage.setItem('smartsupport_current_session_id', id);
     setMessages([]);
 
     try {
@@ -99,6 +116,7 @@ const Chat: React.FC = () => {
       if (currentSessionId === id) {
         setCurrentSessionId(undefined);
         setMessages([]);
+        localStorage.removeItem('smartsupport_current_session_id');
       }
 
       antMessage.success('会话已删除');
@@ -119,6 +137,7 @@ const Chat: React.FC = () => {
       };
       setSessions((prev) => [newSession, ...prev]);
       setCurrentSessionId(newSessionId);
+      localStorage.setItem('smartsupport_current_session_id', newSessionId);
 
       // 添加用户消息
       const userMessage: Message = {

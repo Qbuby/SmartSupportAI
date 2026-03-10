@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from ..agent.agent_manager import AgentManager
 from .admin_api import router as admin_router, log_conversation
+from ..db.session_store import SessionStore
 
 
 # 创建 FastAPI 应用
@@ -142,15 +143,24 @@ async def chat(request: ChatRequest):
                 "user_id": request.user_id,
                 "created_at": datetime.now().isoformat()
             }
+            # 持久化会话到数据库
+            SessionStore.create_session(session_id, request.user_id)
 
         # 更新最后活跃时间
         _active_sessions[session_id]["last_active"] = datetime.now().isoformat()
+
+        # 持久化用户消息
+        SessionStore.add_message(session_id, "user", request.message)
 
         # 调用 Agent 处理消息
         result = agent.chat(
             message=request.message,
             context=request.context or {}
         )
+
+        # 持久化助手回复
+        reply = result.get("answer", "")
+        SessionStore.add_message(session_id, "assistant", reply)
 
         # 记录对话日志（用于统计）
         log_conversation(
@@ -162,7 +172,7 @@ async def chat(request: ChatRequest):
         # 构建响应
         return ChatResponse(
             success=True,
-            reply=result.get("answer", ""),
+            reply=reply,
             intent=result.get("intent"),
             tool_used=result.get("tool_used"),
             context_count=result.get("context_count"),
@@ -185,17 +195,39 @@ async def get_session_history(session_id: str):
     Returns:
         对话历史列表
     """
-    if session_id not in _active_sessions:
-        raise HTTPException(status_code=404, detail="会话不存在")
+    # 优先从数据库加载历史
+    db_history = SessionStore.get_history(session_id)
+    if db_history:
+        # 转换为前端期望的格式
+        formatted_history = []
+        user_msg = None
+        for msg in db_history:
+            if msg["role"] == "user":
+                user_msg = msg["content"]
+            elif msg["role"] == "assistant" and user_msg:
+                formatted_history.append({
+                    "user": user_msg,
+                    "assistant": msg["content"]
+                })
+                user_msg = None
 
-    agent = _active_sessions[session_id]["agent"]
-    history = agent.get_conversation_history()
+        return {
+            "session_id": session_id,
+            "history": formatted_history,
+            "turn_count": len(formatted_history)
+        }
 
-    return {
-        "session_id": session_id,
-        "history": history,
-        "turn_count": len(history)
-    }
+    # 如果内存中有会话，也从内存获取（Agent可能有更完整的历史）
+    if session_id in _active_sessions:
+        agent = _active_sessions[session_id]["agent"]
+        history = agent.get_conversation_history()
+        return {
+            "session_id": session_id,
+            "history": history,
+            "turn_count": len(history)
+        }
+
+    raise HTTPException(status_code=404, detail="会话不存在")
 
 
 @app.delete("/sessions/{session_id}")
@@ -209,15 +241,17 @@ async def clear_session(session_id: str):
     Returns:
         操作结果
     """
-    if session_id not in _active_sessions:
+    # 从数据库删除
+    deleted = SessionStore.delete_session(session_id)
+
+    # 如果内存中有，也从内存中移除
+    if session_id in _active_sessions:
+        agent = _active_sessions[session_id]["agent"]
+        agent.clear_memory()
+        del _active_sessions[session_id]
+
+    if not deleted and session_id not in _active_sessions:
         raise HTTPException(status_code=404, detail="会话不存在")
-
-    # 清除会话记忆
-    agent = _active_sessions[session_id]["agent"]
-    agent.clear_memory()
-
-    # 从活跃会话中移除
-    del _active_sessions[session_id]
 
     return {
         "success": True,
@@ -236,19 +270,28 @@ async def list_sessions(user_id: Optional[str] = None):
     Returns:
         会话列表
     """
+    # 从数据库加载会话列表
+    db_sessions = SessionStore.list_sessions(user_id)
+
     sessions = []
+    for session in db_sessions:
+        # 检查内存中是否有该会话
+        if session["session_id"] in _active_sessions:
+            info = _active_sessions[session["session_id"]]
+            agent = info["agent"]
+            history_length = len(agent.get_conversation_history())
+        else:
+            # 从数据库计算历史长度
+            history = SessionStore.get_history(session["session_id"])
+            # 每两条消息（user+assistant）算作一轮
+            history_length = len([h for h in history if h["role"] == "user"])
 
-    for session_id, info in _active_sessions.items():
-        if user_id and info["user_id"] != user_id:
-            continue
-
-        agent = info["agent"]
         sessions.append(SessionInfo(
-            session_id=session_id,
-            user_id=info["user_id"],
-            history_length=len(agent.get_conversation_history()),
-            created_at=info.get("created_at", ""),
-            last_active=info.get("last_active", "")
+            session_id=session["session_id"],
+            user_id=session["user_id"],
+            history_length=history_length,
+            created_at=session.get("created_at", ""),
+            last_active=session.get("last_active", "")
         ))
 
     return sessions

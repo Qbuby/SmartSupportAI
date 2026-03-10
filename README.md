@@ -1,15 +1,15 @@
-# 🤖 SmartSupport AI
+# SmartSupport AI
 
 <p align="center">
   <strong>企业级智能客服 Agent（RAG + Memory + Tool Calling）</strong>
 </p>
 
 <p align="center">
-  <a href="#核心功能">核心功能</a> •
-  <a href="#系统架构">系统架构</a> •
-  <a href="#快速开始">快速开始</a> •
-  <a href="#项目结构">项目结构</a> •
-  <a href="#api文档">API文档</a>
+  <a href="#-核心功能">核心功能</a> •
+  <a href="#-系统架构">系统架构</a> •
+  <a href="#-快速开始">快速开始</a> •
+  <a href="#-项目结构">项目结构</a> •
+  <a href="#-api文档">API文档</a>
 </p>
 
 <p align="center">
@@ -21,32 +21,33 @@
 
 ---
 
-## 🌟 核心功能
+## 核心功能
 
 ### 后端能力
 
 | 功能 | 描述 | 状态 |
 |------|------|------|
-| 📚 **RAG知识库** | 基于向量检索的文档问答 | ✅ 完成 |
-| 🔍 **Hybrid检索** | 向量+关键词混合搜索 | ✅ 完成 |
-| 🎯 **Rerank排序** | Cross-Encoder重排序优化 | ✅ 完成 |
-| 🧠 **Agent决策** | 意图识别与任务路由 | ✅ 完成 |
-| 🔧 **Tool调用** | 订单/工单查询工具 | ✅ 完成 |
-| 💾 **用户记忆** | 短期+长期记忆系统 | ✅ 完成 |
-| ⚙️ **策略配置** | Chunk/检索/记忆策略管理 | ✅ 完成 |
+| RAG知识库 | 基于向量检索的文档问答 | 完成 |
+| Hybrid检索 | 向量+关键词混合搜索 | 完成 |
+| Rerank排序 | Cross-Encoder重排序优化 | 完成 |
+| Agent决策 | 意图识别与任务路由 | 完成 |
+| Tool调用 | 订单/工单查询工具 | 完成 |
+| 用户记忆 | 短期+长期记忆系统 | 完成 |
+| 策略配置 | Chunk/检索/记忆策略管理 | 完成 |
+| 会话持久化 | 会话历史持久化存储 | 完成 |
 
 ### Web端能力
 
 | 功能 | 描述 | 状态 |
 |------|------|------|
-| 💬 **用户端** | 智能客服对话界面 | ✅ 完成 |
-| 🎛️ **企业端** | 知识库管理后台 | ✅ 完成 |
-| 📊 **数据监控** | 对话统计与日志 | ✅ 完成 |
-| 🔐 **策略配置** | 可视化配置管理 | ✅ 完成 |
+| 用户端 | 智能客服对话界面 | 完成 |
+| 企业端 | 知识库管理后台 | 完成 |
+| 数据监控 | 对话统计与日志 | 完成 |
+| 策略配置 | 可视化配置管理 | 完成 |
 
 ---
 
-## 🏗️ 系统架构
+## 系统架构
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -96,7 +97,7 @@
 
 ---
 
-## 🚀 快速开始
+## 快速开始
 
 ### 1. 克隆仓库
 
@@ -112,7 +113,9 @@ cd smartsupport-ai
 cp .env.example .env
 
 # 编辑 .env 文件，填入你的 API Key
-# DEEPSEEK_API_KEY=your_api_key_here
+# ANTHROPIC_API_KEY=your_api_key_here
+# 或
+# OPENAI_API_KEY=your_api_key_here
 ```
 
 ### 3. 安装依赖
@@ -130,13 +133,7 @@ cd ../admin-portal
 npm install
 ```
 
-### 4. 构建向量库
-
-```bash
-python scripts/build_vector_db.py
-```
-
-### 5. 启动服务
+### 4. 启动服务
 
 ```bash
 # 启动后端 API（端口 8000）
@@ -151,78 +148,76 @@ cd web/admin-portal
 npm run dev
 ```
 
-### 6. 访问服务
+### 5. 访问服务
 
-- 📚 API文档: http://localhost:8000/docs
-- 💬 用户端: http://localhost:5173
-- 🎛️ 企业端: http://localhost:5174
+- API文档: http://localhost:8000/docs
+- 用户端: http://localhost:5173
+- 企业端: http://localhost:5174
 
 ---
 
-## 📁 项目结构
+## 项目结构
 
 ```
 smartsupport-ai/
-├── 📂 app/                          # 后端应用
-│   ├── 📂 agent/                    # Agent模块
-│   │   ├── agent_manager.py         # Agent管理器
-│   │   └── tool_router.py           # 工具路由
-│   ├── 📂 api/                      # API接口
-│   │   ├── chat_api.py              # 对话API
-│   │   └── admin_api.py             # 管理API
-│   ├── 📂 memory/                   # 记忆系统
-│   │   ├── short_memory.py          # 短期记忆
-│   │   └── long_memory.py           # 长期记忆
-│   ├── 📂 rag/                      # RAG系统
-│   │   ├── chunker.py               # 文档分块
-│   │   ├── vector_store.py          # 向量存储
-│   │   ├── retriever.py             # 检索器
-│   │   ├── reranker.py              # 重排序
-│   │   └── rag_pipeline.py          # RAG流水线
-│   └── 📂 tools/                    # 工具模块
-│       ├── order_tool.py            # 订单工具
-│       └── ticket_tool.py           # 工单工具
+├── app/                          # 后端应用
+│   ├── agent/                    # Agent模块
+│   │   ├── agent_manager.py      # Agent管理器
+│   │   └── tool_router.py        # 工具路由
+│   ├── api/                      # API接口
+│   │   ├── chat_api.py           # 对话API
+│   │   └── admin_api.py          # 管理API
+│   ├── db/                       # 数据持久化
+│   │   ├── document_store.py     # 文档存储
+│   │   └── session_store.py      # 会话存储
+│   ├── memory/                   # 记忆系统
+│   │   ├── short_memory.py       # 短期记忆
+│   │   └── long_memory.py        # 长期记忆
+│   ├── rag/                      # RAG系统
+│   │   ├── chunker.py            # 文档分块
+│   │   └── vector_store.py       # 向量存储
+│   └── tools/                    # 工具模块
+│       ├── order_tool.py         # 订单工具
+│       └── ticket_tool.py        # 工单工具
 │
-├── 📂 web/                          # 前端应用
-│   ├── 📂 user-portal/              # 用户端
+├── web/                          # 前端应用
+│   ├── user-portal/              # 用户端
 │   │   ├── src/
-│   │   │   ├── components/          # 组件
-│   │   │   ├── pages/               # 页面
-│   │   │   └── api/                 # API封装
+│   │   │   ├── components/       # 组件
+│   │   │   ├── pages/            # 页面
+│   │   │   └── api/              # API封装
 │   │   └── package.json
-│   └── 📂 admin-portal/             # 企业端
+│   └── admin-portal/             # 企业端
 │       ├── src/
-│       │   ├── pages/               # 页面
-│       │   │   ├── Dashboard.tsx    # 仪表盘
-│       │   │   ├── Knowledge.tsx    # 知识库
-│       │   │   └── Settings.tsx     # 策略配置
+│       │   ├── pages/            # 页面
+│       │   │   ├── Dashboard.tsx
+│       │   │   ├── Knowledge.tsx
+│       │   │   └── Settings.tsx
 │       └── package.json
 │
-├── 📂 config/                       # 配置文件
-│   ├── rag_config.yaml              # RAG配置
-│   └── memory_config.yaml           # 记忆配置
+├── config/                       # 配置文件
+│   └── rag_config.yaml           # RAG配置
 │
-├── 📂 scripts/                      # 工具脚本
-│   └── build_vector_db.py           # 构建向量库
+├── data/                         # 数据目录
+│   ├── chroma_db/                # 向量数据库
+│   ├── uploaded_docs/            # 上传的文档
+│   └── *.db                      # SQLite数据库
 │
-├── 📂 tests/                        # 测试用例
-│   ├── test_agent.py                # Agent测试
-│   ├── test_rag.py                  # RAG测试
-│   └── test_admin_api.py            # 管理API测试
+├── tests/                        # 测试用例
+│   ├── test_agent.py
+│   ├── test_rag.py
+│   └── test_admin_api.py
 │
-├── 📂 data/                         # 数据目录
-│   ├── docs/                        # 文档库
-│   └── chroma_db/                   # 向量数据库
-│
-├── 📄 README.md                     # 项目说明
-├── 📄 技术选型.md                    # 技术方案
-├── 📄 详细说明.md                    # 详细设计
-└── 📄 requirements.txt              # Python依赖
+├── README.md                     # 项目说明
+├── SmartSupport AI.md            # 项目知识文档
+├── 技术选型.md                    # 技术方案
+├── 详细说明.md                    # 详细设计
+└── requirements.txt              # Python依赖
 ```
 
 ---
 
-## 📡 API文档
+## API文档
 
 ### 对话API
 
@@ -249,6 +244,14 @@ Content-Type: application/json
 }
 ```
 
+### 会话管理API
+
+| 端点 | 方法 | 描述 |
+|------|------|------|
+| `/sessions` | GET | 获取会话列表 |
+| `/sessions/{id}/history` | GET | 获取会话历史 |
+| `/sessions/{id}` | DELETE | 删除会话 |
+
 ### 管理API
 
 | 端点 | 方法 | 描述 |
@@ -263,16 +266,15 @@ Content-Type: application/json
 
 ---
 
-## 🛠️ 技术栈
+## 技术栈
 
 ### 后端
 - **Python 3.10+**
 - **FastAPI** - Web框架
 - **ChromaDB** - 向量数据库
 - **SQLite** - 关系数据库
-- **BGE-small-zh** - Embedding模型
-- **BGE-reranker-base** - 重排序模型
-- **DeepSeek API** - LLM接口
+- **BAAI/bge-small-zh** - Embedding模型
+- **Claude API / OpenAI API** - LLM接口
 
 ### 前端
 - **React 18** + **TypeScript**
@@ -282,7 +284,7 @@ Content-Type: application/json
 
 ---
 
-## 📝 配置说明
+## 配置说明
 
 ### RAG配置 (`config/rag_config.yaml`)
 
@@ -293,26 +295,17 @@ chunk_strategy:
   separators: ["\n\n", "\n", "。", "，", " ", ""]
 
 retrieval_strategy:
-  search_type: hybrid      # 搜索类型: vector/keyword/hybrid
-  vector_top_k: 10         # 向量检索数量
-  rerank_top_k: 3          # 重排序TopK
-```
+  search_type: hybrid      # 搜索类型
+  top_k: 5                 # 检索数量
 
-### 记忆配置 (`config/memory_config.yaml`)
-
-```yaml
-short_term_memory:
-  max_history_length: 5    # 短期记忆长度
-  enable_summary: false    # 启用摘要
-
-long_term_memory:
-  enabled: true            # 启用长期记忆
-  max_topics_per_user: 10  # 每用户最大话题数
+embedding:
+  model_name: "BAAI/bge-small-zh"
+  device: "cpu"
 ```
 
 ---
 
-## 🧪 测试
+## 测试
 
 ```bash
 # 运行Agent测试
@@ -327,7 +320,7 @@ python tests/test_admin_api.py
 
 ---
 
-## 🖼️ 界面预览
+## 界面预览
 
 ### 用户端 - 智能客服对话
 ```
@@ -349,26 +342,26 @@ python tests/test_admin_api.py
 │  SmartSupport AI 管理后台          [通知] [用户] [退出]       │
 ├──────────┬──────────────────────────────────────────────────┤
 │          │  仪表盘                                           │
-│  📊 仪表盘 │  ┌─────────┐ ┌─────────┐ ┌─────────┐           │
-│  📚 知识库 │  │今日对话 │ │ 用户数  │ │ 文档数  │           │
-│  ⚙️ 策略配置│  │   128   │ │   45    │ │   23    │           │
+│  仪表盘   │  ┌─────────┐ ┌─────────┐ ┌─────────┐           │
+│  知识库   │  │今日对话 │ │ 用户数  │ │ 文档数  │           │
+│  策略配置 │  │   128   │ │   45    │ │   23    │           │
 └──────────┴──────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📄 许可证
+## 许可证
 
-[MIT License](LICENSE)
+MIT License
 
 ---
 
-## 🤝 贡献
+## 贡献
 
 欢迎提交Issue和Pull Request！
 
 ---
 
 <p align="center">
-  Made with ❤️ by SmartSupport AI Team
+  Made with by SmartSupport AI Team
 </p>
