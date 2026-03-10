@@ -236,7 +236,6 @@ Agent Controller
 
 * Python
 * FastAPI
-* OpenClaw Agent
 * Chroma Vector Database
 * SQLite
 * BGE Embedding
