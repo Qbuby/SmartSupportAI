@@ -26,13 +26,6 @@ app = FastAPI(
 # 注册管理后台路由
 app.include_router(admin_router)
 
-# 创建 FastAPI 应用
-app = FastAPI(
-    title="SmartSupport AI",
-    description="企业级智能客服 Agent API",
-    version="1.0.0"
-)
-
 # 添加 CORS 中间件
 app.add_middleware(
     CORSMiddleware,

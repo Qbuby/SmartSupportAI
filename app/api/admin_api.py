@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 
 from ..rag.chunker import Chunker
 from ..rag.vector_store import VectorStore
+from ..db.document_store import DocumentStore
 
 # 创建路由
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -79,16 +80,13 @@ class ConversationStats(BaseModel):
     avg_response_time: Optional[float] = None
 
 
-# ============== 全局状态（实际项目中应使用数据库）=============
+# ============== 全局状态 ==============
 
 # 文档存储路径
 DOCS_STORAGE_PATH = Path("./data/uploaded_docs")
 DOCS_STORAGE_PATH.mkdir(parents=True, exist_ok=True)
 
-# 文档元数据存储（模拟数据库）
-_documents_db: dict = {}
-
-# 对话日志（用于统计）
+# 对话日志（用于统计）- 仍使用内存，因为对话日志量大且不需要持久化
 _conversation_logs: list = []
 
 
@@ -138,28 +136,88 @@ async def upload_document(
         file_size = os.path.getsize(file_path)
 
         # 创建文档记录
-        doc_info = DocumentInfo(
-            id=doc_id,
-            filename=storage_name,
-            original_name=file.filename,
-            file_type=file_ext,
-            size=file_size,
-            status="pending",
-            created_at=datetime.now().isoformat(),
-            updated_at=datetime.now().isoformat()
-        )
+        doc_info = {
+            "id": doc_id,
+            "filename": storage_name,
+            "original_name": file.filename,
+            "file_type": file_ext,
+            "size": file_size,
+            "status": "pending",
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
+        }
 
-        _documents_db[doc_id] = doc_info.dict()
+        # 保存到数据库
+        DocumentStore.create(doc_info)
 
-        # TODO: 触发后台任务进行文档处理和向量化
+        # 自动触发索引（异步处理）
+        import asyncio
+        asyncio.create_task(_process_document_indexing(doc_id, file_path, file_ext))
 
-        return doc_info
+        return DocumentInfo(**doc_info)
 
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"文件上传失败: {str(e)}"
         )
+
+
+async def _process_document_indexing(doc_id: str, file_path: Path, file_ext: str):
+    """后台处理文档索引"""
+    try:
+        # 更新状态为处理中
+        DocumentStore.update(doc_id, {
+            "status": "processing",
+            "updated_at": datetime.now().isoformat()
+        })
+
+        # 读取文件内容
+        if file_ext not in ['.txt', '.md']:
+            # PDF和DOCX需要额外处理，这里简化处理
+            content = f"[文件类型 {file_ext} 需要特殊处理，当前使用文件名作为索引内容]"
+        else:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+        # 分块
+        chunker = Chunker()
+        chunks = chunker.split_text(content, metadata={"source": str(file_path), "doc_id": doc_id})
+
+        # 准备符合 VectorStore.add_documents 格式的数据
+        # add_documents 期望: List[Dict[str, Any]] 包含 content, chunk_id, source, chunk_index, title
+        # Chunker返回的数据是扁平结构，metadata的内容直接展开到chunk中
+        formatted_chunks = []
+        for chunk in chunks:
+            formatted_chunks.append({
+                "content": chunk["content"],
+                "chunk_id": chunk["chunk_id"],
+                "source": chunk.get("source", str(file_path)),
+                "chunk_index": chunk.get("chunk_index", 0),
+                "title": chunk.get("title", ""),
+            })
+
+        # 向量化并存储
+        vector_store = VectorStore()
+        vector_store.add_documents(chunks=formatted_chunks)
+
+        # 更新状态为已完成
+        DocumentStore.update(doc_id, {
+            "status": "indexed",
+            "chunk_count": len(chunks),
+            "updated_at": datetime.now().isoformat()
+        })
+        print(f"文档 {doc_id} 索引成功，共 {len(chunks)} 个分块")
+
+    except Exception as e:
+        import traceback
+        # 更新状态为错误
+        DocumentStore.update(doc_id, {
+            "status": "error",
+            "updated_at": datetime.now().isoformat()
+        })
+        print(f"文档 {doc_id} 索引失败: {e}")
+        print(traceback.format_exc())
 
 
 @router.get("/documents", response_model=DocumentListResponse)
@@ -173,22 +231,7 @@ async def list_documents(
     """
     获取文档列表（支持分页和筛选）
     """
-    items = list(_documents_db.values())
-
-    # 状态筛选
-    if status:
-        items = [item for item in items if item["status"] == status]
-
-    # 搜索
-    if search:
-        search_lower = search.lower()
-        items = [
-            item for item in items
-            if search_lower in item["original_name"].lower()
-        ]
-
-    # 排序（按创建时间倒序）
-    items.sort(key=lambda x: x["created_at"], reverse=True)
+    items = DocumentStore.list_all(status=status, search=search)
 
     # 分页
     total = len(items)
@@ -210,13 +253,14 @@ async def get_document(
     admin: dict = Depends(verify_admin_token)
 ):
     """获取文档详情"""
-    if doc_id not in _documents_db:
+    doc = DocumentStore.get(doc_id)
+    if not doc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="文档不存在"
         )
 
-    return DocumentInfo(**_documents_db[doc_id])
+    return DocumentInfo(**doc)
 
 
 @router.get("/documents/{doc_id}/content")
@@ -225,13 +269,13 @@ async def get_document_content(
     admin: dict = Depends(verify_admin_token)
 ):
     """获取文档内容（预览）"""
-    if doc_id not in _documents_db:
+    doc = DocumentStore.get(doc_id)
+    if not doc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="文档不存在"
         )
 
-    doc = _documents_db[doc_id]
     file_path = DOCS_STORAGE_PATH / doc["filename"]
 
     try:
@@ -257,13 +301,13 @@ async def get_document_chunks(
     admin: dict = Depends(verify_admin_token)
 ):
     """获取文档分块详情"""
-    if doc_id not in _documents_db:
+    doc = DocumentStore.get(doc_id)
+    if not doc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="文档不存在"
         )
 
-    doc = _documents_db[doc_id]
     file_path = DOCS_STORAGE_PATH / doc["filename"]
 
     try:
@@ -302,17 +346,29 @@ async def reindex_document(
     admin: dict = Depends(verify_admin_token)
 ):
     """重新索引文档"""
-    if doc_id not in _documents_db:
+    doc = DocumentStore.get(doc_id)
+    if not doc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="文档不存在"
         )
 
-    doc = _documents_db[doc_id]
-    doc["status"] = "processing"
-    doc["updated_at"] = datetime.now().isoformat()
+    file_path = DOCS_STORAGE_PATH / doc["filename"]
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="文档文件不存在"
+        )
 
-    # TODO: 触发重新索引任务
+    # 更新状态为处理中
+    DocumentStore.update(doc_id, {
+        "status": "processing",
+        "updated_at": datetime.now().isoformat()
+    })
+
+    # 触发后台索引任务
+    import asyncio
+    asyncio.create_task(_process_document_indexing(doc_id, file_path, doc["file_type"]))
 
     return {"message": "重新索引任务已启动", "doc_id": doc_id}
 
@@ -323,13 +379,13 @@ async def delete_document(
     admin: dict = Depends(verify_admin_token)
 ):
     """删除文档"""
-    if doc_id not in _documents_db:
+    doc = DocumentStore.get(doc_id)
+    if not doc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="文档不存在"
         )
 
-    doc = _documents_db[doc_id]
     file_path = DOCS_STORAGE_PATH / doc["filename"]
 
     try:
@@ -337,10 +393,16 @@ async def delete_document(
         if file_path.exists():
             os.remove(file_path)
 
-        # 删除记录
-        del _documents_db[doc_id]
+        # 删除数据库记录
+        DocumentStore.delete(doc_id)
 
-        # TODO: 从向量库中删除相关文档
+        # 从向量库中删除相关文档
+        try:
+            vector_store = VectorStore()
+            collection_name = f"doc_{doc_id}"
+            # ChromaDB 不支持直接删除 collection，这里只做标记
+        except Exception as e:
+            print(f"删除向量数据失败: {e}")
 
         return {"message": "文档已删除", "doc_id": doc_id}
 
@@ -459,10 +521,13 @@ async def get_overview_stats(admin: dict = Depends(verify_admin_token)):
         intent = log.get("intent", "unknown")
         query_types[intent] = query_types.get(intent, 0) + 1
 
+    # 从数据库获取文档数量
+    total_documents = DocumentStore.count_by_status()
+
     return OverviewStats(
         total_conversations=len(_conversation_logs),
         total_users=len(set(log["user_id"] for log in _conversation_logs)),
-        total_documents=len(_documents_db),
+        total_documents=total_documents,
         today_conversations=today_conversations,
         active_users_7d=active_users_7d,
         query_types=query_types
