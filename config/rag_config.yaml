@@ -1,0 +1,23 @@
+# RAG 配置文件
+
+chunk_strategy:
+  chunk_size: 500
+  chunk_overlap: 100
+  separators: ["\n\n", "\n", "。", "，", " ", ""]
+
+retrieval_strategy:
+  search_type: hybrid
+  vector_top_k: 10
+  keyword_top_k: 10
+  rerank_top_k: 3
+  score_threshold: 0.5
+
+embedding:
+  model_name: BAAI/bge-small-zh
+  device: cpu
+  normalize_embeddings: true
+
+rerank:
+  model_name: BAAI/bge-reranker-base
+  device: cpu
+  max_length: 512

@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"from app.agent.agent_manager import AgentManager; print\\(''✅ Agent Manager 导入成功''\\)\")",
+      "Bash(python -c \"from app.agent.tool_router import ToolRouter; print\\(''✅ Tool Router 导入成功''\\)\")",
+      "Bash(python -c \"from app.tools.order_tool import OrderTool; print\\(''✅ Order Tool 导入成功''\\)\")",
+      "Bash(python -c \"from app.tools.ticket_tool import TicketTool; print\\(''✅ Ticket Tool 导入成功''\\)\")",
+      "Bash(python -c \"from app.memory.short_memory import ShortMemory; print\\(''✅ Short Memory 导入成功''\\)\")",
+      "Bash(python -c \"from app.memory.long_memory import LongMemory; print\\(''✅ Long Memory 导入成功''\\)\")",
+      "Bash(python -c \"from app.tools.order_tool import OrderTool; print\\(''Order Tool OK''\\)\")",
+      "Bash(python -c \"from app.tools.ticket_tool import TicketTool; print\\(''Ticket Tool OK''\\)\")",
+      "Bash(python -c \"from app.memory.short_memory import ShortMemory; print\\(''Short Memory OK''\\)\")",
+      "Bash(python -c \"from app.memory.long_memory import LongMemory; print\\(''Long Memory OK''\\)\")",
+      "Bash(python -c \"from app.agent.tool_router import ToolRouter; print\\(''Tool Router OK''\\)\")"
+    ]
+  }
+}

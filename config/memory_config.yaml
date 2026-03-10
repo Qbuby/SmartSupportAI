@@ -1,0 +1,17 @@
+# Memory 配置文件
+
+short_term_memory:
+  max_history_length: 5
+  enable_summary: false
+
+long_term_memory:
+  enabled: true
+  db_path: ./data/sqlite/memory.db
+  max_topics_per_user: 10
+  topic_expiry_days: 30
+
+memory_topics:
+  - order_query
+  - ticket_query
+  - product_help
+  - api_help

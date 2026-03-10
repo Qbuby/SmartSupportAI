@@ -1,242 +1,374 @@
-# SmartSupport AI
+# 🤖 SmartSupport AI
 
-## 企业级智能客服 Agent（RAG + Memory + Tool Calling）
+<p align="center">
+  <strong>企业级智能客服 Agent（RAG + Memory + Tool Calling）</strong>
+</p>
 
----
+<p align="center">
+  <a href="#核心功能">核心功能</a> •
+  <a href="#系统架构">系统架构</a> •
+  <a href="#快速开始">快速开始</a> •
+  <a href="#项目结构">项目结构</a> •
+  <a href="#api文档">API文档</a>
+</p>
 
-# 一、项目简介
-
-SmartSupport AI 是一个基于 **Agent架构 + RAG（Retrieval-Augmented Generation）** 的企业智能客服系统。
-
-系统支持：
-
-* 企业知识库问答
-* 用户上下文记忆
-* Tool调用（订单 / 工单）
-* Agent决策
-* Chunk策略管理
-* 检索策略管理
-* Rerank检索优化
-
-该项目用于展示 **AI Agent工程能力**。
-
----
-
-# 二、业务背景
-
-SaaS企业客服需要处理大量问题：
-
-* 产品使用
-* API接入
-* 技术文档
-* 错误排查
-* 订单查询
-* 工单查询
-
-传统流程：
-
-```
-用户提问
-↓
-客服查文档
-↓
-客服查后台
-↓
-回复
-```
-
-效率低。
-
-企业希望构建：
-
-**AI客服Agent**
-
-能力包括：
-
-1 RAG知识库
-2 用户记忆
-3 Tool调用
-4 Agent推理
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10+-blue.svg" alt="Python">
+  <img src="https://img.shields.io/badge/FastAPI-0.100+-green.svg" alt="FastAPI">
+  <img src="https://img.shields.io/badge/React-18+-61dafb.svg" alt="React">
+  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
+</p>
 
 ---
 
-# 三、系统核心能力
+## 🌟 核心功能
 
-系统包含：
+### 后端能力
 
-### 1 RAG知识库
+| 功能 | 描述 | 状态 |
+|------|------|------|
+| 📚 **RAG知识库** | 基于向量检索的文档问答 | ✅ 完成 |
+| 🔍 **Hybrid检索** | 向量+关键词混合搜索 | ✅ 完成 |
+| 🎯 **Rerank排序** | Cross-Encoder重排序优化 | ✅ 完成 |
+| 🧠 **Agent决策** | 意图识别与任务路由 | ✅ 完成 |
+| 🔧 **Tool调用** | 订单/工单查询工具 | ✅ 完成 |
+| 💾 **用户记忆** | 短期+长期记忆系统 | ✅ 完成 |
+| ⚙️ **策略配置** | Chunk/检索/记忆策略管理 | ✅ 完成 |
 
-流程：
+### Web端能力
 
-```
-User Query
-↓
-Embedding
-↓
-Vector Search
-↓
-Rerank
-↓
-Context
-↓
-LLM Answer
-```
-
----
-
-### 2 Chunk策略管理
-
-企业文档需要分块：
-
-```
-chunk_size = 500
-chunk_overlap = 100
-```
-
-每个Chunk包含：
-
-* title
-* section
-* source
-* chunk_id
+| 功能 | 描述 | 状态 |
+|------|------|------|
+| 💬 **用户端** | 智能客服对话界面 | ✅ 完成 |
+| 🎛️ **企业端** | 知识库管理后台 | ✅ 完成 |
+| 📊 **数据监控** | 对话统计与日志 | ✅ 完成 |
+| 🔐 **策略配置** | 可视化配置管理 | ✅ 完成 |
 
 ---
 
-### 3 检索策略管理
-
-系统采用：
-
-Hybrid Search
+## 🏗️ 系统架构
 
 ```
-Vector Search
-+
-Keyword Search
-```
-
-流程：
-
-```
-Query
-↓
-Embedding
-↓
-Vector Search
-↓
-Keyword Search
-↓
-Merge
-↓
-Rerank
-↓
-Top Context
+┌─────────────────────────────────────────────────────────────────┐
+│                         Web Frontend                             │
+│  ┌──────────────┐              ┌──────────────────────┐         │
+│  │  用户端       │              │      企业端           │         │
+│  │  (React)     │              │      (React)         │         │
+│  │              │              │                      │         │
+│  │ • 聊天界面   │              │ • 知识库管理         │         │
+│  │ • 会话管理   │              │ • 策略配置           │         │
+│  │ • Markdown  │              │ • 数据统计           │         │
+│  └──────────────┘              └──────────────────────┘         │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     FastAPI Backend                              │
+│                                                                  │
+│  ┌──────────────────┐    ┌──────────────────┐                  │
+│  │   Chat API       │    │   Admin API      │                  │
+│  │   (对话服务)      │    │   (管理服务)      │                  │
+│  └────────┬─────────┘    └──────────────────┘                  │
+│           │                                                      │
+│           ▼                                                      │
+│  ┌──────────────────────────────────────────────┐               │
+│  │           Agent Controller                    │               │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐   │               │
+│  │  │  Intent  │→ │  Router  │→ │  Handler │   │               │
+│  │  │Detection │  │          │  │          │   │               │
+│  │  └──────────┘  └──────────┘  └──────────┘   │               │
+│  └────────┬────────────────────────────────────┘               │
+│           │                                                      │
+│     ┌─────┴─────┬─────────────┬─────────────┐                  │
+│     ▼           ▼             ▼             ▼                  │
+│  ┌──────┐  ┌────────┐   ┌──────────┐  ┌──────────┐           │
+│  │ RAG  │  │ Memory │   │  Order   │  │  Ticket  │           │
+│  │System│  │Manager │   │   Tool   │  │   Tool   │           │
+│  └──────┘  └────────┘   └──────────┘  └──────────┘           │
+│     │           │                                                  │
+│     ▼           ▼                                                  │
+│  ┌────────┐  ┌────────┐                                          │
+│  │ChromaDB│  │SQLite  │                                          │
+│  │(Vector)│  │(Memory)│                                          │
+│  └────────┘  └────────┘                                          │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 4 Agent决策
+## 🚀 快速开始
 
-Agent判断问题类型：
+### 1. 克隆仓库
+
+```bash
+git clone https://github.com/yourusername/smartsupport-ai.git
+cd smartsupport-ai
+```
+
+### 2. 配置环境
+
+```bash
+# 复制环境变量文件
+cp .env.example .env
+
+# 编辑 .env 文件，填入你的 API Key
+# DEEPSEEK_API_KEY=your_api_key_here
+```
+
+### 3. 安装依赖
+
+```bash
+# 安装 Python 依赖
+pip install -r requirements.txt
+
+# 安装前端依赖（用户端）
+cd web/user-portal
+npm install
+
+# 安装前端依赖（企业端）
+cd ../admin-portal
+npm install
+```
+
+### 4. 构建向量库
+
+```bash
+python scripts/build_vector_db.py
+```
+
+### 5. 启动服务
+
+```bash
+# 启动后端 API（端口 8000）
+uvicorn app.api.chat_api:app --reload
+
+# 启动用户端（端口 5173）
+cd web/user-portal
+npm run dev
+
+# 启动企业端（端口 5174）
+cd web/admin-portal
+npm run dev
+```
+
+### 6. 访问服务
+
+- 📚 API文档: http://localhost:8000/docs
+- 💬 用户端: http://localhost:5173
+- 🎛️ 企业端: http://localhost:5174
+
+---
+
+## 📁 项目结构
 
 ```
-if query contains "订单":
-    call order_tool
-
-elif query contains "工单":
-    call ticket_tool
-
-else:
-    use RAG
+smartsupport-ai/
+├── 📂 app/                          # 后端应用
+│   ├── 📂 agent/                    # Agent模块
+│   │   ├── agent_manager.py         # Agent管理器
+│   │   └── tool_router.py           # 工具路由
+│   ├── 📂 api/                      # API接口
+│   │   ├── chat_api.py              # 对话API
+│   │   └── admin_api.py             # 管理API
+│   ├── 📂 memory/                   # 记忆系统
+│   │   ├── short_memory.py          # 短期记忆
+│   │   └── long_memory.py           # 长期记忆
+│   ├── 📂 rag/                      # RAG系统
+│   │   ├── chunker.py               # 文档分块
+│   │   ├── vector_store.py          # 向量存储
+│   │   ├── retriever.py             # 检索器
+│   │   ├── reranker.py              # 重排序
+│   │   └── rag_pipeline.py          # RAG流水线
+│   └── 📂 tools/                    # 工具模块
+│       ├── order_tool.py            # 订单工具
+│       └── ticket_tool.py           # 工单工具
+│
+├── 📂 web/                          # 前端应用
+│   ├── 📂 user-portal/              # 用户端
+│   │   ├── src/
+│   │   │   ├── components/          # 组件
+│   │   │   ├── pages/               # 页面
+│   │   │   └── api/                 # API封装
+│   │   └── package.json
+│   └── 📂 admin-portal/             # 企业端
+│       ├── src/
+│       │   ├── pages/               # 页面
+│       │   │   ├── Dashboard.tsx    # 仪表盘
+│       │   │   ├── Knowledge.tsx    # 知识库
+│       │   │   └── Settings.tsx     # 策略配置
+│       └── package.json
+│
+├── 📂 config/                       # 配置文件
+│   ├── rag_config.yaml              # RAG配置
+│   └── memory_config.yaml           # 记忆配置
+│
+├── 📂 scripts/                      # 工具脚本
+│   └── build_vector_db.py           # 构建向量库
+│
+├── 📂 tests/                        # 测试用例
+│   ├── test_agent.py                # Agent测试
+│   ├── test_rag.py                  # RAG测试
+│   └── test_admin_api.py            # 管理API测试
+│
+├── 📂 data/                         # 数据目录
+│   ├── docs/                        # 文档库
+│   └── chroma_db/                   # 向量数据库
+│
+├── 📄 README.md                     # 项目说明
+├── 📄 技术选型.md                    # 技术方案
+├── 📄 详细说明.md                    # 详细设计
+└── 📄 requirements.txt              # Python依赖
 ```
 
 ---
 
-### 5 Tool Calling
+## 📡 API文档
 
-订单工具：
+### 对话API
 
-```
-get_order_status(order_id)
-```
+```http
+POST /chat
+Content-Type: application/json
 
-返回：
-
-```
 {
- "order_id":"12345",
- "status":"已发货"
+  "user_id": "user_001",
+  "message": "我的订单12345什么时候发货？",
+  "session_id": "optional-session-id"
 }
 ```
 
-工单工具：
-
+**响应:**
+```json
+{
+  "success": true,
+  "reply": "订单12345的状态是：已发货...",
+  "intent": "order_query",
+  "tool_used": "order",
+  "session_id": "sess_xxx",
+  "timestamp": "2025-03-11T12:00:00"
+}
 ```
-get_ticket_status(ticket_id)
+
+### 管理API
+
+| 端点 | 方法 | 描述 |
+|------|------|------|
+| `/api/admin/documents` | GET | 获取文档列表 |
+| `/api/admin/documents/upload` | POST | 上传文档 |
+| `/api/admin/config/rag` | GET/PUT | RAG配置管理 |
+| `/api/admin/config/memory` | GET/PUT | 记忆配置管理 |
+| `/api/admin/stats/overview` | GET | 概览统计 |
+
+完整API文档请访问: http://localhost:8000/docs
+
+---
+
+## 🛠️ 技术栈
+
+### 后端
+- **Python 3.10+**
+- **FastAPI** - Web框架
+- **ChromaDB** - 向量数据库
+- **SQLite** - 关系数据库
+- **BGE-small-zh** - Embedding模型
+- **BGE-reranker-base** - 重排序模型
+- **DeepSeek API** - LLM接口
+
+### 前端
+- **React 18** + **TypeScript**
+- **Ant Design 5** - UI组件库
+- **Vite** - 构建工具
+- **Axios** - HTTP客户端
+
+---
+
+## 📝 配置说明
+
+### RAG配置 (`config/rag_config.yaml`)
+
+```yaml
+chunk_strategy:
+  chunk_size: 500          # 分块大小
+  chunk_overlap: 100       # 重叠大小
+  separators: ["\n\n", "\n", "。", "，", " ", ""]
+
+retrieval_strategy:
+  search_type: hybrid      # 搜索类型: vector/keyword/hybrid
+  vector_top_k: 10         # 向量检索数量
+  rerank_top_k: 3          # 重排序TopK
+```
+
+### 记忆配置 (`config/memory_config.yaml`)
+
+```yaml
+short_term_memory:
+  max_history_length: 5    # 短期记忆长度
+  enable_summary: false    # 启用摘要
+
+long_term_memory:
+  enabled: true            # 启用长期记忆
+  max_topics_per_user: 10  # 每用户最大话题数
 ```
 
 ---
 
-### 6 Memory系统
+## 🧪 测试
 
-系统包含两种记忆。
+```bash
+# 运行Agent测试
+python tests/test_agent.py
 
----
+# 运行RAG测试
+python tests/test_rag.py
 
-短期记忆：
-
-记录当前对话上下文。
-
-保存：
-
-```
-最近5轮对话
+# 运行管理API测试（需先启动服务）
+python tests/test_admin_api.py
 ```
 
 ---
 
-长期记忆：
+## 🖼️ 界面预览
 
-SQLite存储：
-
-* user_id
-* company
-* frequently asked topics
-
----
-
-# 四、系统架构
-
+### 用户端 - 智能客服对话
 ```
-User
- │
- ▼
-API Gateway
- │
- ▼
-Agent Controller
- │
- ├── Memory Manager
- │
- ├── RAG System
- │      ├── Chunk Manager
- │      ├── Retriever
- │      └── Reranker
- │
- └── Tool Router
-        │
-        ├── Order Tool
-        └── Ticket Tool
+┌─────────────────────────────────────────────────────┐
+│  SmartSupport AI                              [≡]   │
+├────────────┬────────────────────────────────────────┤
+│ [+ 新对话] │                                        │
+│            │  助手：您好！有什么可以帮助您？          │
+│ 会话历史   │                                        │
+│ ├─ 会话1   │  用户：我的订单12345什么时候发货？      │
+│ ├─ 会话2   │                                        │
+│ └─ 会话3   │  助手：订单12345的状态是：已发货        │
+└────────────┴────────────────────────────────────────┘
+```
+
+### 企业端 - 管理后台
+```
+┌─────────────────────────────────────────────────────────────┐
+│  SmartSupport AI 管理后台          [通知] [用户] [退出]       │
+├──────────┬──────────────────────────────────────────────────┤
+│          │  仪表盘                                           │
+│  📊 仪表盘 │  ┌─────────┐ ┌─────────┐ ┌─────────┐           │
+│  📚 知识库 │  │今日对话 │ │ 用户数  │ │ 文档数  │           │
+│  ⚙️ 策略配置│  │   128   │ │   45    │ │   23    │           │
+└──────────┴──────────────────────────────────────────────────┘
 ```
 
 ---
 
-# 五、技术架构
+## 📄 许可证
 
-技术栈：
+[MIT License](LICENSE)
 
-* Python
-* FastAPI
-* Chroma Vector Database
-* SQLite
-* BGE Embedding
-* BGE Reranker
+---
+
+## 🤝 贡献
+
+欢迎提交Issue和Pull Request！
+
+---
+
+<p align="center">
+  Made with ❤️ by SmartSupport AI Team
+</p>

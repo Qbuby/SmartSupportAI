@@ -1,0 +1,97 @@
+.sidebar {
+  width: 260px;
+  height: 100%;
+  background-color: #fff;
+  border-right: 1px solid #e8e8e8;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: 16px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.logoIcon {
+  font-size: 24px;
+  color: #1890ff;
+}
+
+.logoText {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.sessionList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.listTitle {
+  display: block;
+  padding: 0 8px 8px;
+  font-size: 12px;
+}
+
+.sessionItem {
+  cursor: pointer;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  padding: 12px !important;
+  transition: background-color 0.2s;
+}
+
+.sessionItem:hover {
+  background-color: #f5f5f5;
+}
+
+.sessionItem.active {
+  background-color: #e6f7ff;
+}
+
+.sessionItem :global(.ant-list-item-action) {
+  display: none;
+}
+
+.sessionItem:hover :global(.ant-list-item-action) {
+  display: block;
+}
+
+.messageIcon {
+  color: #bfbfbf;
+  font-size: 16px;
+}
+
+.sessionTitle {
+  font-size: 14px;
+  max-width: 140px;
+}
+
+.sessionMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.time {
+  font-size: 12px;
+}
+
+.deleteIcon {
+  color: #bfbfbf;
+  font-size: 14px;
+  padding: 4px;
+}
+
+.deleteIcon:hover {
+  color: #ff4d4f;
+}
